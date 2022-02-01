@@ -1,0 +1,28 @@
+# Clone le repo
+git clone git@gfa-gitlab.umons.ac.be:simeon.dekens/virtual-environment-tp.git
+
+cd virtual-environment-tp
+
+# Crée une branche locale pour nos modifications
+git checkout -b questions
+
+# Push les changements sur un autre repo (--set-upstream)
+git push --set-upstream git@github.com:sdekens/virtual-environment-TP.git
+
+# Quand on doit push d'autres changements, il faut se remettre à jour avec la master de Gitlab:
+git pull git@gfa-gitlab.umons.ac.be:simeon.dekens/virtual-environment-tp.git
+
+# Il va merger les 2 branches et demander confirmation
+# Puis on fait les changements en local et push sur github
+git push
+
+
+
+
+# Déroulement:
+# On pull la master de Gitlab
+# On crée la branche locale questions
+# On fait les modifs et on les push sur Github (branche question qui fait office de master)
+# Quand on en a besoin;
+# On merge la master de Gitlab avec questions en local
+# On fait les modifs et on les push sur Github
