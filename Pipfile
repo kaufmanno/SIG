@@ -20,6 +20,8 @@ ipyleaflet = "*"
 branca = "*"
 contextily = "*"
 mapclassify = "*"
+pygraphviz = "*"
+eralchemy = "*"
 
 [requires]
 python_version = "3.8"
