@@ -22,7 +22,7 @@ shapely = "*"
 fiona = "*"
 pyproj = "*"
 descartes = "*"
-sqlalchemy = "*"
+sqlalchemy = "<1.4"
 geoalchemy = "*"
 rtree = "*"
 
