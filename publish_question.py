@@ -174,7 +174,7 @@ def remove_solutions(parent_dir='.'):
     question_branch = True
     if question_branch:
         for f in to_remove:
-            execute(f'git -rm {f}')
+            execute(f'git rm {f}')
 
 
 def execute(cmd, shell=True):
