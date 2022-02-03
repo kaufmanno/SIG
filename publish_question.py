@@ -9,10 +9,12 @@ verbose = True
 
 
 def create_question(notebook):
+
     if '_Solution' in notebook:
         out_notebook = notebook.split('_Solution')[0] + notebook.split('_Solution')[1]
     else:
         print(f'Warning: _Solution not found in notebook name {notebook}. Quitting...')
+        out_notebook = ''
         exit(1)
 
     if verbose:
@@ -243,18 +245,22 @@ if __name__ == '__main__':
     if verbose:
         print('Starting...')
 
-    in_notebook = sys.argv[1]
-    if 'SIG' in in_notebook:
-        repository = 'SIG'
+    course = sys.argv[1]
+    section = sys.argv[2]
+    topic = sys.argv[3]
 
-    if repository is not None:
+    in_notebook = f'./{course}/{section}/{topic}/{topic}_Solution.ipynb'
+    if verbose:
+        print(f'Updating a question notebook from {in_notebook}...')
+
+    if course in ['SIG']:
         checkout_to_questions_branch()
         assert_on_branch('questions')
-        clean_path()
+        clean_path(course)
         question_filename = create_question(in_notebook)
         remove_solutions()
         add_question_into_commit(question_filename)
-        commit_and_pull_repo(repository)
-        push_repo_and_remove_branch(repository)
+        commit_and_pull_repo(course)
+        push_repo_and_remove_branch(course)
         assert_on_branch('master')
         print('Question successfully pushed to github...')
