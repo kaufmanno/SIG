@@ -1,6 +1,10 @@
 import nbformat
 import codecs
 import sys
+import subprocess
+
+
+verbose = True
 
 
 def create_question(notebook):
@@ -161,10 +165,43 @@ def create_question(notebook):
     nbformat.write(nb, out_notebook, version=nbformat.NO_CONVERT)
 
 
+def execute(cmd):
+    out = subprocess.check_output(cmd)
+    if verbose:
+        print(out.decode('utf-8'))
+
+def pull_and_push_repo():
+
+    execute("git checkout - b questions")
+
+
+    # TODO: Remove the *_solution.ipynb files
+
+
+    # TODO: Is it required to git add *_questions.ipynp files
+    execute("git commit -m 'Removes solutions'")
+
+    execute("git pull git@github.com:sdekens/virtual-environment-TP.git")
+
+    execute("git push git@github.com:sdekens/virtual-environment-TP.git")
+
+    execute("git checkout master")
+
+    execute("git branch -D questions")
+
+
+
+
 if __name__ == '__main__':
-    verbose = True
     if verbose:
         print('Starting...')
 
+    out = subprocess.check_output("git rev-parse --abbrev-ref HEAD")
+    if out.decode('utf-8') != "master":
+        print(f'Warning: You should be on branch master. You\'re currently on {out.decode("utf-8")}. Quitting...')
+        exit(1)
+
     in_notebook = sys.argv[1]
     create_question(in_notebook)
+
+    pull_and_push_repo()
