@@ -178,7 +178,7 @@ def remove_solutions(parent_dir='.'):
 
 
 def execute(cmd, shell=True):
-    out = subprocess.check_output(cmd, shell=shell)
+    out = subprocess.check_output(cmd, shell=True)
     if verbose:
         print(out.decode('utf-8'))
 
@@ -196,15 +196,23 @@ def commit_and_pull_repo():
     execute("git pull git@github.com:sdekens/virtual-environment-TP.git")
 
 
+def clean_path():
+    check_on_branch('questions')
+    execute('git rm ./*')
+    # TODO remove subdirectories related to the other lectures
+    execute('git mv -r ./SIG/* .')
+    execute('git rm -r ./SIG')
+
+
 def push_repo_and_remove_branch():
-    execute("git push git@github.com:sdekens/virtual-environment-TP.git")
+    execute("git push git@github.com:kaufmanno/SIG.git")
     execute("git checkout master")
     execute("git branch -D questions")
 
 
 def check_on_branch(branch='master'):
-    out = subprocess.check_output('git rev-parse --abbrev-ref HEAD')
-    if out.decode('utf-8').lower() != branch:
+    out = subprocess.check_output('git rev-parse --abbrev-ref HEAD', shell=True)
+    if out.decode('utf-8').lower().strip('\n') != branch:
         print(f'Warning: You should be on branch {branch}. You\'re currently on {out.decode("utf-8")}. Quitting...')
         exit(1)
 
@@ -225,6 +233,7 @@ if __name__ == '__main__':
         check_on_branch('questions')
         question_filename = create_question(in_notebook)
         remove_solutions()
+        clean_path()
         add_question_into_commit(question_filename)
         commit_and_pull_repo()
         push_repo_and_remove_branch()
