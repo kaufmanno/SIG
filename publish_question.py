@@ -191,9 +191,9 @@ def checkout_to_questions_branch():
     execute("git checkout -b questions")
 
 
-def commit_and_pull_repo():
+def commit_and_pull_repo(repo):
     execute("git commit -m 'Removes solutions'")
-    execute("git pull git@github.com:sdekens/virtual-environment-TP.git main:questions")
+    execute(f'git pull git@github.com:kaufmanno/{repo}.git main:questions')
 
 
 def clean_path():
@@ -204,8 +204,8 @@ def clean_path():
     execute('rm -rf ./SIG')
 
 
-def push_repo_and_remove_branch():
-    execute("git push git@github.com:kaufmanno/SIG.git question:main")
+def push_repo_and_remove_branch(repo):
+    execute(f'git push git@github.com:kaufmanno/{repo}.git questions:main')
     execute("git checkout master")
     execute("git branch -D questions")
 
@@ -235,7 +235,7 @@ if __name__ == '__main__':
         remove_solutions()
         add_question_into_commit(question_filename)
         clean_path()
-        commit_and_pull_repo()
-        push_repo_and_remove_branch()
+        commit_and_pull_repo(repository)
+        push_repo_and_remove_branch(repository)
         check_on_branch('master')
         print('Question successfully pushed to github...')
