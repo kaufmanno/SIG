@@ -100,7 +100,7 @@ def create_question(notebook):
                     solution = None
                 cells_to_keep.append(i)
         elif i['cell_type'] == 'markdown':
-            if '## @question' in source:
+            if '## @question\n' in source:
                 if solution is not None:
                     cells_to_keep.append(solution)
                 solution = None
@@ -111,16 +111,23 @@ def create_question(notebook):
                     s = f"""<div class="alert alert-block alert-warning">\n{question}\n</div> <br>\n<button data-toggle="collapse"
                     data-target="#question_{question_nr:04d}">Afficher la réponse</button>\n\n<div id="question_{question_nr:04d}"
                     class="collapse">{answer}\n</div>\n"""
+                    sx = codecs.encode(codecs.encode(s, 'utf8'), 'hex')
+                    i['source'] = f"# @hidden\nsx={sx}\nHTML(codecs.decode(codecs.decode(sx,'hex'), 'utf8'))"
+                    i['cell_type'] = 'code'
+                    i['execution_count'] = None
+                    i['outputs'] = [nbformat.notebooknode.NotebookNode({'name': 'stdout', 'output_type': 'stream',
+                                                                        'text': '# @info: Exécutez-moi pour afficher la question interactive\n'})]
                 else:
                     s = f"""<div class="alert alert-block alert-warning">\n{question}\n</div>"""
-                sx = codecs.encode(codecs.encode(s, 'utf8'), 'hex')
-                i['source'] = f"# @hidden\nsx={sx}\nHTML(codecs.decode(codecs.decode(sx,'hex'), 'utf8'))"
-                i['cell_type'] = 'code'
-                i['execution_count'] = None
-                i['outputs'] = [nbformat.notebooknode.NotebookNode({'name': 'stdout', 'output_type': 'stream',
-                                                                    'text': '# @info: Exécutez-moi pour afficher la question interactive\n'})]
+                    i['source'] = s
+
                 cells_to_keep.append(i)
                 question_nr += 1
+            elif '## @tip' in source:
+                tip = source.replace('# @tip', '').replace('\n', '<br>\n').lstrip()
+                while tip.startswith('<br>\n'):
+                    tip = tip[5:]
+                i['source'] = f'<div class="alert alert-block alert-info">\n<b>Tip:</b> {tip}\n</div>'
             elif "## @section" in source:
                 section += 1
                 if solution is not None:
