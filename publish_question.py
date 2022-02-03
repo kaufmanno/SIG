@@ -170,11 +170,11 @@ def create_question(notebook):
 def remove_solutions(parent_dir='.'):
     to_remove = glob.glob(f'{parent_dir}/**/*_Solution.ipynb', recursive=True)
 
-    # TODO: Check if in question branch
-    question_branch = True
-    if question_branch:
-        for f in to_remove:
-            execute(f'git rm {f}')
+    assert_on_branch('questions')
+    if verbose:
+        print('Removing solution files...')
+    for f in to_remove:
+        execute(f'git rm {f}')
 
 
 def execute(cmd, shell=True):
@@ -185,33 +185,51 @@ def execute(cmd, shell=True):
 
 def add_question_into_commit(filename):
     execute(f'git add {filename}')
+    if verbose:
+        print(f'Adding {filename} to commit...')
 
 
 def checkout_to_questions_branch():
     execute("git checkout -b questions")
+    if verbose:
+        print('Checking out to a new local branch named "questions"...')
 
 
 def commit_and_pull_repo(repo):
+    if verbose:
+        print('Committing changes...')
     execute("git commit -m 'Removes solutions'")
+    if verbose:
+        print(f'Pulling from github {repo} repo...')
     execute(f'git pull git@github.com:kaufmanno/{repo}.git main')
 
 
-def clean_path():
-    check_on_branch('questions')
+def clean_path(course):
+    assert_on_branch('questions')
+    if verbose:
+        print(f'Moving files from {course}...')
     execute('find . -maxdepth 1 -type f -exec git rm {} \\;')
     # TODO remove subdirectories related to the other lectures
-    execute('git mv ./SIG/* .')
-    execute('git mv ./SIG/.gitignore .')
-    execute('rm -rf ./SIG')
+    execute(f'git mv ./{course}/.gitignore .')
+    execute(f'git mv ./{course}/* .')
+    if verbose:
+        print(f'Removing {course} emptied subdirectory...')
+    execute(f'rm -rf ./{course}')
 
 
 def push_repo_and_remove_branch(repo):
+    if verbose:
+        print(f'Pushing to {repo}...')
     execute(f'git push git@github.com:kaufmanno/{repo}.git questions:main')
+    if verbose:
+        print(f'Checking out back to master...')
     execute("git checkout master")
+    if verbose:
+        print(f'Deleting questions branch...')
     execute("git branch -D questions")
 
 
-def check_on_branch(branch='master'):
+def assert_on_branch(branch='master'):
     out = subprocess.check_output('git rev-parse --abbrev-ref HEAD', shell=True)
     if out.decode('utf-8').lower().strip('\n') != branch:
         print(f'Warning: You should be on branch {branch}. You\'re currently on {out.decode("utf-8")}. Quitting...')
@@ -219,7 +237,7 @@ def check_on_branch(branch='master'):
 
 
 if __name__ == '__main__':
-    check_on_branch('master')
+    assert_on_branch('master')
 
     repository = None
     if verbose:
@@ -231,12 +249,12 @@ if __name__ == '__main__':
 
     if repository is not None:
         checkout_to_questions_branch()
-        check_on_branch('questions')
+        assert_on_branch('questions')
+        clean_path()
         question_filename = create_question(in_notebook)
         remove_solutions()
         add_question_into_commit(question_filename)
-        clean_path()
         commit_and_pull_repo(repository)
         push_repo_and_remove_branch(repository)
-        check_on_branch('master')
+        assert_on_branch('master')
         print('Question successfully pushed to github...')
