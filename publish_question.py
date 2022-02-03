@@ -1,4 +1,3 @@
-import os
 import glob
 import nbformat
 import codecs
@@ -165,52 +164,69 @@ def create_question(notebook):
     nb['cells'] = cells_to_keep
 
     nbformat.write(nb, out_notebook, version=nbformat.NO_CONVERT)
+    return out_notebook
 
 
 def remove_solutions(parent_dir='.'):
     to_remove = glob.glob(f'{parent_dir}/**/*_FakeSolution.ipynb', recursive=True)
-    ## TODO: Check if in question branch
+
+    # TODO: Check if in question branch
     question_branch = True
     if question_branch:
         for f in to_remove:
-            os.remove(f)
+            execute(f'git -rm {f}')
 
 
-def execute(cmd):
-    out = subprocess.check_output(cmd)
+def execute(cmd, shell=True):
+    out = subprocess.check_output(cmd, shell=shell)
     if verbose:
         print(out.decode('utf-8'))
 
 
-def pull_and_push_repo():
-    execute("git checkout - b questions")
+def add_question_into_commit(filename):
+    execute(f'git add {filename}')
 
-    # TODO: Remove the *_solution.ipynb files
 
-    # TODO: Is it required to git add *_questions.ipynp files
+def checkout_to_questions_branch():
+    execute("git checkout -b questions")
+
+
+def commit_and_pull_repo():
     execute("git commit -m 'Removes solutions'")
     execute("git pull git@github.com:sdekens/virtual-environment-TP.git")
+
+
+def push_repo_and_remove_branch():
     execute("git push git@github.com:sdekens/virtual-environment-TP.git")
     execute("git checkout master")
     execute("git branch -D questions")
 
 
+def check_on_branch(branch='master'):
+    out = subprocess.check_output('git rev-parse --abbrev-ref HEAD')
+    if out.decode('utf-8').lower() != branch:
+        print(f'Warning: You should be on branch {branch}. You\'re currently on {out.decode("utf-8")}. Quitting...')
+        exit(1)
+
+
 if __name__ == '__main__':
-    verbose = True
+    check_on_branch('master')
+
     repository = None
     if verbose:
         print('Starting...')
-
-    out = subprocess.check_output('git rev-parse --abbrev-ref HEAD')
-    if out.decode('utf-8').lower() != 'master':
-        print(f'Warning: You should be on branch master. You\'re currently on {out.decode("utf-8")}. Quitting...')
-        exit(1)
 
     in_notebook = sys.argv[1]
     if 'SIG' in in_notebook:
         repository = 'SIG'
 
     if repository is not None:
-        create_question(in_notebook)
+        checkout_to_questions_branch()
+        check_on_branch('questions')
+        question_filename = create_question(in_notebook)
         remove_solutions()
-        pull_and_push_repo()
+        add_question_into_commit(question_filename)
+        commit_and_pull_repo()
+        push_repo_and_remove_branch()
+        check_on_branch('master')
+        print('Question successfully pushed to github...')
