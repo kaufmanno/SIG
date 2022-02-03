@@ -193,7 +193,7 @@ def checkout_to_questions_branch():
 
 def commit_and_pull_repo(repo):
     execute("git commit -m 'Removes solutions'")
-    execute(f'git pull git@github.com:kaufmanno/{repo}.git main:questions')
+    execute(f'git pull git@github.com:kaufmanno/{repo}.git main')
 
 
 def clean_path():
