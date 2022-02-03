@@ -6,8 +6,25 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-nbformat = "*"
-nbconvert = "*"
+numpy = "*"
+matplotlib = "*"
+pandas = "*"
+geopandas = "*"
+rasterio = "*"
+ipyleaflet = "*"
+branca = "*"
+contextily = "*"
+mapclassify = "*"
+eralchemy = "*"
+jupyterlab = "*"
+ipython-sql = "*"
+shapely = "*"
+fiona = "*"
+pyproj = "*"
+descartes = "*"
+sqlalchemy = "<1.4"
+geoalchemy = "*"
+rtree = "*"
 
 [requires]
 python_version = "3.8"
