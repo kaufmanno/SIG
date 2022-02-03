@@ -168,7 +168,7 @@ def create_question(notebook):
 
 
 def remove_solutions(parent_dir='.'):
-    to_remove = glob.glob(f'{parent_dir}/**/*_FakeSolution.ipynb', recursive=True)
+    to_remove = glob.glob(f'{parent_dir}/**/*_Solution.ipynb', recursive=True)
 
     # TODO: Check if in question branch
     question_branch = True
@@ -233,8 +233,8 @@ if __name__ == '__main__':
         check_on_branch('questions')
         question_filename = create_question(in_notebook)
         remove_solutions()
-        clean_path()
         add_question_into_commit(question_filename)
+        clean_path()
         commit_and_pull_repo()
         push_repo_and_remove_branch()
         check_on_branch('master')
