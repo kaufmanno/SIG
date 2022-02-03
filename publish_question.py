@@ -205,7 +205,7 @@ def clean_path():
 
 
 def push_repo_and_remove_branch():
-    execute("git push git@github.com:kaufmanno/SIG.git")
+    execute("git push git@github.com:kaufmanno/SIG.git main")
     execute("git checkout master")
     execute("git branch -D questions")
 
