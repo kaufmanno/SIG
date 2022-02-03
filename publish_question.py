@@ -22,7 +22,7 @@ def create_question(notebook):
 
     nb = nbformat.read(notebook, nbformat.NO_CONVERT)
 
-    outputs = None
+    # outputs = None
     solution = None
     cells_to_keep = []
     question_nr = 0
@@ -186,15 +186,15 @@ def execute(cmd, shell=True):
 
 
 def add_question_into_commit(filename):
-    execute(f'git add {filename}')
     if verbose:
         print(f'Adding {filename} to commit...')
+    execute(f'git add {filename}')
 
 
 def checkout_to_questions_branch():
-    execute("git checkout -b questions")
     if verbose:
-        print('Checking out to a new local branch named "questions"...')
+        print('Checking out to a new local branch...')
+    execute("git checkout -b questions")
 
 
 def commit_and_pull_repo(repo):
@@ -249,11 +249,13 @@ if __name__ == '__main__':
     section = sys.argv[2]
     topic = sys.argv[3]
 
-    in_notebook = f'./{course}/{section}/{topic}/{topic}_Solution.ipynb'
+    in_notebook = f'./{section}/{topic}/{topic}_Solution.ipynb'
     if verbose:
         print(f'Updating a question notebook from {in_notebook}...')
 
-    if course in ['SIG']:
+    # TODO: Add more courses with corresponding subdirectories and github folders in the list
+    course_list = ['SIG']
+    if course in course_list:
         checkout_to_questions_branch()
         assert_on_branch('questions')
         clean_path(course)
@@ -263,4 +265,6 @@ if __name__ == '__main__':
         commit_and_pull_repo(course)
         push_repo_and_remove_branch(course)
         assert_on_branch('master')
-        print('Question successfully pushed to github...')
+        print(f'Question successfully updated {topic} question notebook in section {section} of {course}...')
+    else:
+        print(f'Un')
