@@ -106,10 +106,13 @@ def create_question(notebook):
                 solution = None
                 qa = source.rsplit('## @answer\n')
                 question = qa[0].strip('## @question\n')
-                answer = qa[1]
-                s = f"""<div class="alert alert-block alert-warning">\n{question}\n</div> <br>\n<button data-toggle="collapse"
-                data-target="#question_{question_nr:04d}">Afficher la réponse</button>\n\n<div id="question_{question_nr:04d}"
-                class="collapse">{answer}\n</div>\n"""
+                if len(qa)>1:
+                    answer = qa[1]
+                    s = f"""<div class="alert alert-block alert-warning">\n{question}\n</div> <br>\n<button data-toggle="collapse"
+                    data-target="#question_{question_nr:04d}">Afficher la réponse</button>\n\n<div id="question_{question_nr:04d}"
+                    class="collapse">{answer}\n</div>\n"""
+                else:
+                    s = f"""<div class="alert alert-block alert-warning">\n{question}\n</div>"""
                 sx = codecs.encode(codecs.encode(s, 'utf8'), 'hex')
                 i['source'] = f"# @hidden\nsx={sx}\nHTML(codecs.decode(codecs.decode(sx,'hex'), 'utf8'))"
                 i['cell_type'] = 'code'
