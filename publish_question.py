@@ -198,7 +198,7 @@ def commit_and_pull_repo():
 
 def clean_path():
     check_on_branch('questions')
-    execute('git rm ./*')
+    execute('find . -maxdepth 1 -type f -exec git rm -v {}')
     # TODO remove subdirectories related to the other lectures
     execute('git mv -r ./SIG/* .')
     execute('git rm -r ./SIG')
