@@ -234,11 +234,14 @@ def push_repo_and_remove_branch(repo):
         print(f'Pushing to {repo}...')
     execute(f'git push git@github.com:kaufmanno/{repo}.git questions:main')
     if verbose:
+        print(f'Stashing changes...')
+    execute('git stash')
+    if verbose:
         print(f'Checking out back to master...')
-    execute("git checkout master")
+    execute('git checkout master')
     if verbose:
         print(f'Deleting questions branch...')
-    execute("git branch -D questions")
+    execute('git branch -D questions')
 
 
 def assert_on_branch(branch='master'):
