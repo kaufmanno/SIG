@@ -2,22 +2,18 @@ import nbformat
 import codecs
 import sys
 
-if __name__ == '__main__':
-    verbose = True
-    if verbose:
-        print('Starting...')
 
-    in_notebook = sys.argv[1]
-    if '_Solution' in in_notebook:
-        out_notebook = in_notebook.split('_Solution')[0]+in_notebook.split('_Solution')[1]
+def create_question(notebook):
+    if '_Solution' in notebook:
+        out_notebook = notebook.split('_Solution')[0] + notebook.split('_Solution')[1]
     else:
-        print(f'Warning: _Solution not found in notebook name {in_notebook}. Quitting...')
+        print(f'Warning: _Solution not found in notebook name {notebook}. Quitting...')
         exit(1)
 
     if verbose:
-        print(f'Converting {in_notebook}...')
+        print(f'Converting {notebook}...')
 
-    nb = nbformat.read(in_notebook, nbformat.NO_CONVERT)
+    nb = nbformat.read(notebook, nbformat.NO_CONVERT)
 
     outputs = None
     solution = None
@@ -163,3 +159,12 @@ if __name__ == '__main__':
     nb['cells'] = cells_to_keep
 
     nbformat.write(nb, out_notebook, version=nbformat.NO_CONVERT)
+
+
+if __name__ == '__main__':
+    verbose = True
+    if verbose:
+        print('Starting...')
+
+    in_notebook = sys.argv[1]
+    create_question(in_notebook)
