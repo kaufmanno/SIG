@@ -193,7 +193,7 @@ def checkout_to_questions_branch():
 
 def commit_and_pull_repo():
     execute("git commit -m 'Removes solutions'")
-    execute("git pull git@github.com:sdekens/virtual-environment-TP.git")
+    execute("git pull git@github.com:sdekens/virtual-environment-TP.git main:questions")
 
 
 def clean_path():
@@ -205,7 +205,7 @@ def clean_path():
 
 
 def push_repo_and_remove_branch():
-    execute("git push git@github.com:kaufmanno/SIG.git main")
+    execute("git push git@github.com:kaufmanno/SIG.git question:main")
     execute("git checkout master")
     execute("git branch -D questions")
 
