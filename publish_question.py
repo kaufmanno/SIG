@@ -1,3 +1,5 @@
+import os
+import glob
 import nbformat
 import codecs
 import sys
@@ -161,10 +163,26 @@ def create_question(notebook):
     nbformat.write(nb, out_notebook, version=nbformat.NO_CONVERT)
 
 
+def remove_solutions(parent_dir='.'):
+    to_remove = glob.glob(f'{parent_dir}/**/*_FakeSolution.ipynb', recursive=True)
+    ## TODO: Check if in question branch
+    question_branch = True
+    if question_branch:
+        for f in to_remove:
+            os.remove(f)
+
+
 if __name__ == '__main__':
+
     verbose = True
+    repository = None
     if verbose:
         print('Starting...')
 
     in_notebook = sys.argv[1]
-    create_question(in_notebook)
+    if 'SIG' in in_notebook:
+        repository = 'SIG'
+
+    if repository is not None:
+        create_question(in_notebook)
+        remove_solutions()
