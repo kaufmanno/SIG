@@ -176,7 +176,7 @@ def remove_solutions(parent_dir='.'):
     if verbose:
         print('Removing solution files...')
     for f in to_remove:
-        execute(f'git rm {f}')
+        execute(f'git rm -f {f}')
 
 
 def execute(cmd, shell=True):
@@ -251,7 +251,7 @@ if __name__ == '__main__':
 
     in_notebook = f'./{section}/{topic}/{topic}_Solution.ipynb'
     if verbose:
-        print(f'Updating a question notebook from {in_notebook}...')
+        print(f'Updating a question notebook from {in_notebook} in {course}...')
 
     # TODO: Add more courses with corresponding subdirectories and github folders in the list
     course_list = ['SIG']
