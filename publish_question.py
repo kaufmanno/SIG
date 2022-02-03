@@ -201,6 +201,7 @@ def clean_path():
     execute('find . -maxdepth 1 -type f -exec git rm {} \\;')
     # TODO remove subdirectories related to the other lectures
     execute('git mv ./SIG/* .')
+    execute('git mv ./SIG/.gitignore .')
     execute('rm -rf ./SIG')
 
 
