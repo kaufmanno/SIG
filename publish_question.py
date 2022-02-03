@@ -200,8 +200,8 @@ def clean_path():
     check_on_branch('questions')
     execute('find . -maxdepth 1 -type f -exec git rm {} \\;')
     # TODO remove subdirectories related to the other lectures
-    execute('git mv -r ./SIG/* .')
-    execute('git rm -r ./SIG')
+    execute('git mv ./SIG/* .')
+    execute('rm -rf ./SIG')
 
 
 def push_repo_and_remove_branch():
