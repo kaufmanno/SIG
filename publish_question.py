@@ -253,6 +253,7 @@ def get_question_filename(notebook):
         exit(1)
     return out_notebook
 
+
 def pull_repo(repo):
     if verbose:
         print(f'Pulling from github {repo} repo...')
@@ -279,10 +280,10 @@ def push_repo_and_remove_branch(repo):
     execute('git branch -D questions')
 
 
-def remove_question(filename):
+def remove_file(filename):
     assert_on_branch('questions')
     if verbose:
-        print(f'Removing question file {filename}...')
+        print(f'Removing file {filename}...')
         debug()
     execute(f'git rm -f {filename}')
 
@@ -298,12 +299,12 @@ def remove_solutions(parent_dir='.'):
         execute(f'git rm -f {f}')
 
 
-def untrack_solution(notebook):
+def untrack_file(filename):
     assert_on_branch('questions')
     if verbose:
-        print(f'Untracking solution file {notebook}...')
+        print(f'Untracking file {filename}...')
         debug()
-    execute(f'git rm --cached {notebook}')
+    execute(f'git rm --cached {filename}')
 
 
 if __name__ == '__main__':
@@ -322,6 +323,7 @@ if __name__ == '__main__':
         verbose = True
 
     in_notebook = f'./{section}/{topic}/{topic}_Solution.ipynb'
+    question_filename = get_question_filename(in_notebook)
     if verbose:
         print(f'Updating a question notebook from {in_notebook} in {course}...')
 
@@ -331,11 +333,11 @@ if __name__ == '__main__':
         checkout_to_questions_branch()
         assert_on_branch('questions')
         clean_path(course)
-        untrack_solution(in_notebook)
+        untrack_file(in_notebook)
+        remove_file(question_filename)
         commit_changes(course)
         pull_repo(course)
-        question_filename = get_question_filename(in_notebook)
-        remove_question(question_filename)
+        remove_file(question_filename)
         question_filename = create_question(in_notebook)
         remove_solutions()
         add_question_into_commit(question_filename)
