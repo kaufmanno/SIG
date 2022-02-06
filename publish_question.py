@@ -6,10 +6,62 @@ import subprocess
 
 
 verbose = True
+mode = 'standard'
+
+
+def add_question_into_commit(filename):
+    if verbose:
+        print(f'Adding {filename} to commit...')
+        debug()
+    execute(f'git add {filename}')
+
+
+def assert_on_branch(branch='master'):
+    out = subprocess.check_output('git rev-parse --abbrev-ref HEAD', shell=True)
+    if out.decode('utf-8').lower().strip('\n') != branch:
+        print(f'Warning: You should be on branch {branch}. You\'re currently on {out.decode("utf-8")}. Quitting...')
+        exit(1)
+
+
+def checkout_to_questions_branch():
+    if verbose:
+        print('Checking out to a new local branch...')
+        debug()
+    execute("git checkout -b questions")
+
+
+def clean_path(current_course):
+    assert_on_branch('questions')
+    if verbose:
+        print(f'Moving tools to {current_course}...')
+        debug()
+    execute(f'git mv tools/* ./{current_course}')
+    if verbose:
+        print(f'Moving files from {current_course}...')
+        debug()
+    execute('find . -maxdepth 1 -type f -exec git rm {} \\;')
+    # TODO remove subdirectories related to the other lectures
+    execute(f'git mv ./{current_course}/.gitignore .')
+    execute(f'git mv ./{current_course}/* .')
+    if verbose:
+        print(f'Removing {current_course} emptied subdirectory...')
+        debug()
+    execute(f'rm -rf ./{current_course}')
+
+
+def commit_and_pull_repo(repo):
+    if verbose:
+        print('Committing changes...')
+        debug()
+    execute(f'git commit -m "Updates {repo}"')
+    if verbose:
+        print(f'Pulling from github {repo} repo...')
+        debug()
+    execute(f'git pull git@github.com:kaufmanno/{repo}.git main')
 
 
 def confirm(question, default_answer='No'):
-    reply = input(f'{question}? [{default_answer}]')
+    reply = input(f'{question}? [{default_answer}] > ')
     if reply == '':
         reply = default_answer
     return reply.lower()
@@ -26,6 +78,7 @@ def create_question(notebook):
 
     if verbose:
         print(f'Converting {notebook}...')
+        debug()
 
     nb = nbformat.read(notebook, nbformat.NO_CONVERT)
 
@@ -189,14 +242,9 @@ def create_question(notebook):
     return out_notebook
 
 
-def remove_solutions(parent_dir='.'):
-    to_remove = glob.glob(f'{parent_dir}/**/*_Solution.ipynb', recursive=True)
-
-    assert_on_branch('questions')
-    if verbose:
-        print('Removing solution files...')
-    for f in to_remove:
-        execute(f'git rm -f {f}')
+def debug():
+    if mode == 'debug' and confirm('Proceed', 'Yes') != 'yes':
+        exit("Interrupted by user...")
 
 
 def execute(cmd, shell=True):
@@ -205,63 +253,34 @@ def execute(cmd, shell=True):
         print(out.decode('utf-8'))
 
 
-def add_question_into_commit(filename):
-    if verbose:
-        print(f'Adding {filename} to commit...')
-    execute(f'git add {filename}')
-
-
-def checkout_to_questions_branch():
-    if verbose:
-        print('Checking out to a new local branch...')
-    execute("git checkout -b questions")
-
-
-def commit_and_pull_repo(repo):
-    if verbose:
-        print('Committing changes...')
-    execute("git commit -m 'Removes solutions'")
-    if verbose:
-        print(f'Pulling from github {repo} repo...')
-    execute(f'git pull git@github.com:kaufmanno/{repo}.git main')
-
-
-def clean_path(course):
-    assert_on_branch('questions')
-    if verbose:
-        print(f'Moving tools to {course}...')
-    execute(f'git mv tools/* ./{course}')
-    if verbose:
-        print(f'Moving files from {course}...')
-    execute('find . -maxdepth 1 -type f -exec git rm {} \\;')
-    # TODO remove subdirectories related to the other lectures
-    execute(f'git mv ./{course}/.gitignore .')
-    execute(f'git mv ./{course}/* .')
-    if verbose:
-        print(f'Removing {course} emptied subdirectory...')
-    execute(f'rm -rf ./{course}')
-
-
 def push_repo_and_remove_branch(repo):
     if verbose:
         print(f'Pushing to {repo}...')
+        debug()
     execute(f'git push git@github.com:kaufmanno/{repo}.git questions:main')
     if verbose:
         print(f'Stashing changes...')
+        debug()
     execute('git stash')
     if verbose:
         print(f'Checking out back to master...')
+        debug()
     execute('git checkout master')
     if verbose:
         print(f'Deleting questions branch...')
+        debug()
     execute('git branch -D questions')
 
 
-def assert_on_branch(branch='master'):
-    out = subprocess.check_output('git rev-parse --abbrev-ref HEAD', shell=True)
-    if out.decode('utf-8').lower().strip('\n') != branch:
-        print(f'Warning: You should be on branch {branch}. You\'re currently on {out.decode("utf-8")}. Quitting...')
-        exit(1)
+def remove_solutions(parent_dir='.'):
+    to_remove = glob.glob(f'{parent_dir}/**/*_Solution.ipynb', recursive=True)
+
+    assert_on_branch('questions')
+    if verbose:
+        print('Removing solution files...')
+        debug()
+    for f in to_remove:
+        execute(f'git rm -f {f}')
 
 
 if __name__ == '__main__':
@@ -276,8 +295,8 @@ if __name__ == '__main__':
     topic = sys.argv[3]
     if len(sys.argv) > 4:
         mode = sys.argv[4]
-    else:
-        mode = 'standard'
+    if mode == 'debug':
+        verbose = True
 
     in_notebook = f'./{section}/{topic}/{topic}_Solution.ipynb'
     if verbose:
@@ -287,29 +306,13 @@ if __name__ == '__main__':
     course_list = ['SIG']
     if course in course_list:
         checkout_to_questions_branch()
-        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
-            exit("Interrupted by user...")
         assert_on_branch('questions')
-        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
-            exit("Interrupted by user...")
         clean_path(course)
-        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
-            exit("Interrupted by user...")
         question_filename = create_question(in_notebook)
-        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
-            exit("Interrupted by user...")
         remove_solutions()
-        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
-            exit("Interrupted by user...")
         add_question_into_commit(question_filename)
-        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
-            exit("Interrupted by user...")
         commit_and_pull_repo(course)
-        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
-            exit("Interrupted by user...")
         push_repo_and_remove_branch(course)
-        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
-            exit("Interrupted by user...")
         assert_on_branch('master')
         print(f'Question successfully updated {topic} question notebook in section {section} of {course}...')
     else:
