@@ -8,6 +8,13 @@ import subprocess
 verbose = True
 
 
+def confirm(question, default_answer='No'):
+    reply = input(f'{question}? [{default_answer}]')
+    if reply == '':
+        reply = default_answer
+    return reply.lower()
+
+
 def create_question(notebook):
 
     if '_Solution' in notebook:
@@ -40,14 +47,17 @@ def create_question(notebook):
                 # code = i['source']
                 code = "# @info: Exécutez-moi pour activer les questions interactives\n" \
                        "# -----------------------------------------------------------\n\n" \
-                       "from IPython.display import HTML\nimport codecs\n\n# @hidden\nHTML('''\n<script>\ncode_show=true;\nfunction code_toggle() {\n if (code_show){\n" \
+                       "from IPython.display import HTML\nimport codecs\n\n# @hidden\n" \
+                       "HTML('''\n<script>\ncode_show=true;\nfunction code_toggle() {\n if (code_show){\n" \
                        "  $('.cm-comment:contains(@hidden)').closest('div.input').hide();\n } else {\n" \
-                       "  $('.cm-comment:contains(@hidden)').closest('div.input').show();\n }\n code_show = !code_show\n}\n" \
+                       "  $('.cm-comment:contains(@hidden)').closest('div.input').show();\n }\n" \
+                       " code_show = !code_show\n}\n" \
                        "$( document ).ready(code_toggle);\n</script>\n" \
                        "<div># @info: Exécutez-moi pour activer les questions interactives </div>\n''')"
                 i['source'] = code
                 i['outputs'] = [nbformat.notebooknode.NotebookNode({'name': 'stdout', 'output_type': 'stream',
-                                                                    'text': '# @info: Exécutez-moi pour cacher le code, puis sauvegardez le notebook\n'})]
+                                                                    'text': '# @info: Exécutez-moi pour cacher le'  
+                                                                            ' code, puis sauvegardez le notebook\n'})]
                 cells_to_keep.append(i)
 
             elif '# @solution' in source:
@@ -106,7 +116,7 @@ def create_question(notebook):
                 solution = None
                 qa = source.rsplit('## @answer\n')
                 question = qa[0].strip('## @question\n')
-                if len(qa)>1:
+                if len(qa) > 1:
                     answer = qa[1]
                     s = f"""<div class="alert alert-block alert-warning">\n{question}\n</div> <br>\n<button data-toggle="collapse"
                     data-target="#question_{question_nr:04d}">Afficher la réponse</button>\n\n<div id="question_{question_nr:04d}"
@@ -190,7 +200,7 @@ def remove_solutions(parent_dir='.'):
 
 
 def execute(cmd, shell=True):
-    out = subprocess.check_output(cmd, shell=True)
+    out = subprocess.check_output(cmd, shell=shell)
     if verbose:
         print(out.decode('utf-8'))
 
@@ -264,6 +274,10 @@ if __name__ == '__main__':
     course = sys.argv[1]
     section = sys.argv[2]
     topic = sys.argv[3]
+    if len(sys.argv) > 4:
+        mode = sys.argv[4]
+    else:
+        mode = 'standard'
 
     in_notebook = f'./{section}/{topic}/{topic}_Solution.ipynb'
     if verbose:
@@ -273,14 +287,30 @@ if __name__ == '__main__':
     course_list = ['SIG']
     if course in course_list:
         checkout_to_questions_branch()
+        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
+            exit("Interrupted by user...")
         assert_on_branch('questions')
+        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
+            exit("Interrupted by user...")
         clean_path(course)
+        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
+            exit("Interrupted by user...")
         question_filename = create_question(in_notebook)
+        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
+            exit("Interrupted by user...")
         remove_solutions()
+        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
+            exit("Interrupted by user...")
         add_question_into_commit(question_filename)
+        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
+            exit("Interrupted by user...")
         commit_and_pull_repo(course)
+        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
+            exit("Interrupted by user...")
         push_repo_and_remove_branch(course)
+        if mode == 'debug' and confirm('Proceed to next step', 'Yes') != 'yes':
+            exit("Interrupted by user...")
         assert_on_branch('master')
         print(f'Question successfully updated {topic} question notebook in section {section} of {course}...')
     else:
-        print(f'Un')
+        print(f'Unknown course {course}')
