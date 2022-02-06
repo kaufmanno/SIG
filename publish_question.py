@@ -9,38 +9,39 @@ verbose = True
 mode = 'standard'
 
 
-def add_question_into_commit(filename):
+def add_file_into_commit(filename, branch='question'):
+    assert_on_branch(branch)
     if verbose:
-        print(f'Adding {filename} to commit...')
+        print(f'Adding {filename} to commit on branch {branch}...')
         debug()
     execute(f'git add {filename}')
 
 
-def assert_on_branch(branch='master'):
+def assert_on_branch(branch):
     out = subprocess.check_output('git rev-parse --abbrev-ref HEAD', shell=True)
     if out.decode('utf-8').lower().strip('\n') != branch:
         print(f'Warning: You should be on branch {branch}. You\'re currently on {out.decode("utf-8")}. Quitting...')
         exit(1)
 
 
-def checkout_to_questions_branch():
+def checkout_to_branch(branch='questions'):
     if verbose:
-        print('Checking out to a new local branch...')
+        print(f'Checking out to a new local branch {branch}...')
         debug()
-    execute("git checkout -b questions")
+    execute(f'git checkout -b {branch}')
 
 
-def clean_path(current_course):
-    assert_on_branch('questions')
+def clean_path(current_course, branch='questions'):
+    assert_on_branch(branch)
     if verbose:
-        print(f'Moving tools to {current_course}...')
+        print(f'Moving tools to {current_course} on branch {branch}...')
         debug()
     execute(f'git mv tools/* ./{current_course}')
     if verbose:
         print(f'Moving files from {current_course}...')
         debug()
     execute('find . -maxdepth 1 -type f -exec git rm {} \\;')
-    # TODO remove subdirectories related to the other lectures
+    # TODO: remove subdirectories related to the other courses
     execute(f'git mv ./{current_course}/.gitignore .')
     execute(f'git mv ./{current_course}/* .')
     if verbose:
@@ -49,11 +50,14 @@ def clean_path(current_course):
     execute(f'rm -rf ./{current_course}')
 
 
-def commit_changes(repo):
+def commit_changes(message=None, branch='questions'):
+    assert_on_branch(branch)
     if verbose:
-        print('Committing changes...')
+        print(f'Committing changes to {branch}...')
         debug()
-    execute(f'git commit -m "Updates {repo}"')
+    if message is None:
+        message = f'Undisclosed updates'
+    execute(f'git commit -m "{message}"')
 
 
 def confirm(question, default_answer='No'):
@@ -64,7 +68,6 @@ def confirm(question, default_answer='No'):
 
 
 def create_question(notebook):
-
     out_notebook = get_question_filename(notebook)
 
     if verbose:
@@ -254,11 +257,30 @@ def get_question_filename(notebook):
     return out_notebook
 
 
-def pull_repo(repo):
+def pull_repo(repo, branch='main'):
+    if repo == '':
+        branch = ''
     if verbose:
-        print(f'Pulling from github {repo} repo...')
+        print(f'Pulling from {repo} {branch}...')
         debug()
-    execute(f'git pull git@github.com:kaufmanno/{repo}.git main')
+    cmd = 'git pull'
+    if repo != '':
+        cmd += f' {repo} {branch}'
+    execute(cmd)
+
+
+def push_changes(repo='', branch='questions', remote_branch='main'):
+    assert_on_branch(branch)
+    if verbose:
+        if repo == '':
+            print(f'Pushing ...')
+        else:
+            print(f'Pushing to {repo} {branch}:{remote_branch}...')
+        debug()
+    cmd = 'git push'
+    if repo != '':
+        cmd += f' {repo} {branch}:{remote_branch}'
+    execute(cmd)
 
 
 def push_repo_and_remove_branch(repo):
@@ -280,18 +302,18 @@ def push_repo_and_remove_branch(repo):
     execute('git branch -D questions')
 
 
-def remove_file(filename):
-    assert_on_branch('questions')
+def remove_file(filename, branch='questions'):
+    assert_on_branch(branch)
     if verbose:
-        print(f'Removing file {filename}...')
+        print(f'Removing file {filename} from branch {branch}...')
         debug()
     execute(f'git rm -f {filename}')
 
 
-def remove_solutions(parent_dir='.'):
+def remove_solutions(parent_dir='.', branch='questions'):
     to_remove = glob.glob(f'{parent_dir}/**/*_Solution.ipynb', recursive=True)
 
-    assert_on_branch('questions')
+    assert_on_branch(branch)
     if verbose:
         print('Removing solution files...')
         debug()
@@ -299,21 +321,25 @@ def remove_solutions(parent_dir='.'):
         execute(f'git rm -f {f}')
 
 
-def untrack_file(filename):
-    assert_on_branch('questions')
+def untrack_file(filename, branch='questions'):
+    assert_on_branch(branch)
     if verbose:
-        print(f'Untracking file {filename}...')
+        print(f'Untracking file {filename} on branch {branch}...')
         debug()
     execute(f'git rm --cached {filename}')
 
 
 if __name__ == '__main__':
-    assert_on_branch('master')
+    # TODO: Add more courses with corresponding subdirectories and github folders in the list
+    course_list = ['SIG']
 
+    assert_on_branch('master')
     repository = None
+
     if verbose:
         print('Starting...')
 
+    # Read command line arguments : course section topic [mode]
     course = sys.argv[1]
     section = sys.argv[2]
     topic = sys.argv[3]
@@ -322,28 +348,34 @@ if __name__ == '__main__':
     if mode == 'debug':
         verbose = True
 
-    in_notebook = f'./{section}/{topic}/{topic}_Solution.ipynb'
-    question_filename = get_question_filename(in_notebook)
-    if verbose:
-        print(f'Updating a question notebook from {in_notebook} in {course}...')
+    # Constructs the solution filename from the arguments
+    solution_filename = f'./{section}/{topic}/{topic}_Solution.ipynb'
 
-    # TODO: Add more courses with corresponding subdirectories and github folders in the list
-    course_list = ['SIG']
+    # Sets the repository
+    questions_repo = f'git@github.com:kaufmanno/{course}.git'
+
+    if verbose:
+        print(f'Updating a question notebook from {solution_filename} in {course}...')
+
+    # Prepares the question notebook creates a new branch synchronize with questions repo on github
     if course in course_list:
-        checkout_to_questions_branch()
-        assert_on_branch('questions')
-        clean_path(course)
-        untrack_file(in_notebook)
-        remove_file(question_filename)
-        commit_changes(course)
-        pull_repo(course)
-        remove_file(question_filename)
-        question_filename = create_question(in_notebook)
-        remove_solutions()
-        add_question_into_commit(question_filename)
-        commit_changes(course)
-        push_repo_and_remove_branch(course)
-        assert_on_branch('master')
-        print(f'Question successfully updated {topic} question notebook in section {section} of {course}...')
+        question_filename = create_question(solution_filename)
+        add_file_into_commit(question_filename, branch='master')
+        add_file_into_commit(solution_filename, branch='master')
+        commit_changes(message=f'Updates {question_filename}', branch='master')
+        push_changes(branch='master')
+        checkout_to_branch('questions')
+        clean_path(course, branch='questions')
+        untrack_file(solution_filename, 'questions')
+        commit_changes(f'Updates {question_filename} in {course}', branch='questions')
+        pull_repo(questions_repo, branch='main')
+        # remove_file(question_filename)
+        # question_filename = create_question(solution_filename)
+        # remove_solutions()
+        # add_file_into_commit(question_filename, branch='questions')
+        # commit_changes(messages = course)
+        # push_repo_and_remove_branch(course)
+        # assert_on_branch('master')
+        # print(f'Question successfully updated {topic} question notebook in section {section} of {course}...')
     else:
         print(f'Unknown course {course}')
