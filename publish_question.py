@@ -49,15 +49,11 @@ def clean_path(current_course):
     execute(f'rm -rf ./{current_course}')
 
 
-def commit_and_pull_repo(repo):
+def commit_changes(repo):
     if verbose:
         print('Committing changes...')
         debug()
     execute(f'git commit -m "Updates {repo}"')
-    if verbose:
-        print(f'Pulling from github {repo} repo...')
-        debug()
-    execute(f'git pull git@github.com:kaufmanno/{repo}.git main')
 
 
 def confirm(question, default_answer='No'):
@@ -69,12 +65,7 @@ def confirm(question, default_answer='No'):
 
 def create_question(notebook):
 
-    if '_Solution' in notebook:
-        out_notebook = notebook.split('_Solution')[0] + notebook.split('_Solution')[1]
-    else:
-        print(f'Warning: _Solution not found in notebook name {notebook}. Quitting...')
-        out_notebook = ''
-        exit(1)
+    out_notebook = get_question_filename(notebook)
 
     if verbose:
         print(f'Converting {notebook}...')
@@ -253,6 +244,22 @@ def execute(cmd, shell=True):
         print(out.decode('utf-8'))
 
 
+def get_question_filename(notebook):
+    if '_Solution' in notebook:
+        out_notebook = notebook.split('_Solution')[0] + notebook.split('_Solution')[1]
+    else:
+        print(f'Warning: _Solution not found in notebook name {notebook}. Quitting...')
+        out_notebook = ''
+        exit(1)
+    return out_notebook
+
+def pull_repo(repo):
+    if verbose:
+        print(f'Pulling from github {repo} repo...')
+        debug()
+    execute(f'git pull git@github.com:kaufmanno/{repo}.git main')
+
+
 def push_repo_and_remove_branch(repo):
     if verbose:
         print(f'Pushing to {repo}...')
@@ -308,10 +315,12 @@ if __name__ == '__main__':
         checkout_to_questions_branch()
         assert_on_branch('questions')
         clean_path(course)
+        pull_repo(course)
+        remove_question(coure)
         question_filename = create_question(in_notebook)
         remove_solutions()
         add_question_into_commit(question_filename)
-        commit_and_pull_repo(course)
+        commit_changes(course)
         push_repo_and_remove_branch(course)
         assert_on_branch('master')
         print(f'Question successfully updated {topic} question notebook in section {section} of {course}...')
