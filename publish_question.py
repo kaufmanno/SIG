@@ -279,6 +279,14 @@ def push_repo_and_remove_branch(repo):
     execute('git branch -D questions')
 
 
+def remove_question(filename):
+    assert_on_branch('questions')
+    if verbose:
+        print(f'Removing question file {filename}...')
+        debug()
+    execute(f'git rm -f {filename}')
+
+
 def remove_solutions(parent_dir='.'):
     to_remove = glob.glob(f'{parent_dir}/**/*_Solution.ipynb', recursive=True)
 
@@ -315,8 +323,10 @@ if __name__ == '__main__':
         checkout_to_questions_branch()
         assert_on_branch('questions')
         clean_path(course)
+        commit_changes(course)
         pull_repo(course)
-        remove_question(coure)
+        question_filename = get_question_filename(in_notebook)
+        remove_question(question_filename)
         question_filename = create_question(in_notebook)
         remove_solutions()
         add_question_into_commit(question_filename)
