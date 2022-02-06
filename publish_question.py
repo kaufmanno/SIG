@@ -283,11 +283,8 @@ def push_changes(repo='', branch='questions', remote_branch='main'):
     execute(cmd)
 
 
-def push_repo_and_remove_branch(repo):
-    if verbose:
-        print(f'Pushing to {repo}...')
-        debug()
-    execute(f'git push git@github.com:kaufmanno/{repo}.git questions:main')
+def push_repo_and_remove_branch(repo, branch='questions', remote_branch='main'):
+    push_changes(repo, branch, remote_branch)
     if verbose:
         print(f'Stashing changes...')
         debug()
@@ -297,9 +294,13 @@ def push_repo_and_remove_branch(repo):
         debug()
     execute('git checkout master')
     if verbose:
-        print(f'Deleting questions branch...')
+        print(f'Deleting {branch} branch...')
         debug()
-    execute('git branch -D questions')
+    if branch in ['master', 'main']:
+        reply = confirm(f'DO YOU REALLY WANT TO ERASE THE {branch.capitalize()} BRANCH', 'No')
+        if reply != 'yes':
+            exit('Interrupted by user...')
+    execute(f'git branch -D {branch}')
 
 
 def remove_file(filename, branch='questions'):
@@ -370,13 +371,8 @@ if __name__ == '__main__':
         untrack_file(solution_filename, 'questions')
         commit_changes(f'Updates {question_filename} in {course}', branch='questions')
         pull_repo(questions_repo, branch='main')
-        # remove_file(question_filename)
-        # question_filename = create_question(solution_filename)
-        # remove_solutions()
-        # add_file_into_commit(question_filename, branch='questions')
-        # commit_changes(messages = course)
-        # push_repo_and_remove_branch(course)
-        # assert_on_branch('master')
-        # print(f'Question successfully updated {topic} question notebook in section {section} of {course}...')
+        push_repo_and_remove_branch(course)
+        assert_on_branch('master')
+        print(f'Question successfully updated {topic} question notebook in section {section} of {course}...')
     else:
         print(f'Unknown course {course}')
