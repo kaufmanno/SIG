@@ -349,7 +349,7 @@ if __name__ == '__main__':
         verbose = True
 
     # Constructs the solution filename from the arguments
-    solution_filename = f'./{section}/{topic}/{topic}_Solution.ipynb'
+    solution_filename = f'./{course}/{section}/{topic}/{topic}_Solution.ipynb'
 
     # Sets the repository
     questions_repo = f'git@github.com:kaufmanno/{course}.git'
@@ -366,6 +366,7 @@ if __name__ == '__main__':
         push_changes(branch='master')
         checkout_to_branch('questions')
         clean_path(course, branch='questions')
+        solution_filename = f'./{section}/{topic}/{topic}_Solution.ipynb'
         untrack_file(solution_filename, 'questions')
         commit_changes(f'Updates {question_filename} in {course}', branch='questions')
         pull_repo(questions_repo, branch='main')
