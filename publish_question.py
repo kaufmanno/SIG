@@ -298,6 +298,14 @@ def remove_solutions(parent_dir='.'):
         execute(f'git rm -f {f}')
 
 
+def untrack_solution(notebook):
+    assert_on_branch('questions')
+    if verbose:
+        print(f'Untracking solution file {notebook}...')
+        debug()
+    execute(f'git rm --cached {notebook}')
+
+
 if __name__ == '__main__':
     assert_on_branch('master')
 
@@ -323,6 +331,7 @@ if __name__ == '__main__':
         checkout_to_questions_branch()
         assert_on_branch('questions')
         clean_path(course)
+        untrack_solution(in_notebook)
         commit_changes(course)
         pull_repo(course)
         question_filename = get_question_filename(in_notebook)
