@@ -219,6 +219,9 @@ def commit_and_pull_repo(repo):
 def clean_path(course):
     assert_on_branch('questions')
     if verbose:
+        print(f'copying tools to {course}...')
+    execute(f'cp tools/* ./{course}')
+    if verbose:
         print(f'Moving files from {course}...')
     execute('find . -maxdepth 1 -type f -exec git rm {} \\;')
     # TODO remove subdirectories related to the other lectures
