@@ -165,9 +165,11 @@ def create_question(notebook):
                 qa = source.rsplit('### @answer\n')
                 question = qa[0].strip('### @question\n')
                 if verbose:
-                    print(f'question {question} found in cell {i["execution_count"]}')
+                    print(f'question {question} found...')
                 if len(qa) > 1:
                     answer = qa[1]
+                    if verbose:
+                        print(f'answer {answer} found...')
                     s = f"""<div class="alert alert-block alert-warning">\n<b>Question: </b><br>{question}\n</div> <br>\n<button data-toggle="collapse"
                     data-target="#question_{question_nr:04d}">Afficher la réponse</button>\n\n<div id="question_{question_nr:04d}"
                     class="collapse">{answer}\n</div>\n"""
