@@ -189,7 +189,7 @@ def create_question(notebook):
                 info = source.replace('### @info', '').replace('\n', '<br>\n').lstrip()
                 while info.startswith('<br>\n'):
                     info = info[5:]
-                i['source'] = f'<div class="alert alert-block alert-info">\n<b>Info:</b> {info}\n</div>'
+                i['source'] = f'<div class="alert alert-block alert-info">\n<b>Info:</b><br> {info}\n</div>'
                 cells_to_keep.append(i)
             elif '### @warning' in source:
                 warning = source.replace('### @warning', '').replace('\n', '<br>\n').lstrip()
@@ -200,7 +200,7 @@ def create_question(notebook):
             elif '### @note' in source:
                 note = source.replace('### @note', '').replace('\n', '<br>\n').lstrip()
                 while note.startswith('<br>\n'):
-                    note = info[5:]
+                    note = note[5:]
                 i['source'] = f'<b>Note:</b><br>{note}\n'
                 cells_to_keep.append(i)
             elif "## @section" in source:
