@@ -164,6 +164,8 @@ def create_question(notebook):
                 solution = None
                 qa = source.rsplit('### @answer\n')
                 question = qa[0].strip('### @question\n')
+                if verbose:
+                    print(f'question {question} found in cell {i["execution_count"]}')
                 if len(qa) > 1:
                     answer = qa[1]
                     s = f"""<div class="alert alert-block alert-warning">\n<b>Question: </b><br>{question}\n</div> <br>\n<button data-toggle="collapse"
@@ -186,16 +188,19 @@ def create_question(notebook):
                 while info.startswith('<br>\n'):
                     info = info[5:]
                 i['source'] = f'<div class="alert alert-block alert-info">\n<b>Info:</b> {info}\n</div>'
+                cells_to_keep.append(i)
             elif '### @warning' in source:
                 warning = source.replace('### @warning', '').replace('\n', '<br>\n').lstrip()
                 while warning.startswith('<br>\n'):
                     warning = warning[5:]
                 i['source'] = f'<div class="alert alert-block alert-warning">\n<b>Attention:</b><br> {warning}\n</div>'
+                cells_to_keep.append(i)
             elif '### @note' in source:
                 note = source.replace('### @note', '').replace('\n', '<br>\n').lstrip()
                 while note.startswith('<br>\n'):
                     note = info[5:]
                 i['source'] = f'<b>Note:</b><br>{note}\n'
+                cells_to_keep.append(i)
             elif "## @section" in source:
                 section += 1
                 if solution is not None:
