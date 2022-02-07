@@ -14,7 +14,7 @@ def add_file_into_commit(filename, branch='question'):
     assert_on_branch(branch)
     if verbose:
         print(f'Adding {filename} to commit on branch {branch}...')
-        debug()
+        proceed()
     execute(f'git add {filename}')
 
 
@@ -28,7 +28,7 @@ def assert_on_branch(branch):
 def checkout_to_branch(branch='questions'):
     if verbose:
         print(f'Checking out to a new local branch {branch}...')
-        debug()
+        proceed()
     execute(f'git checkout -b {branch}')
 
 
@@ -36,18 +36,18 @@ def clean_path(current_course, branch='questions'):
     assert_on_branch(branch)
     if verbose:
         print(f'Moving tools to {current_course} on branch {branch}...')
-        debug()
+        proceed()
     execute(f'git mv tools/* ./{current_course}')
     if verbose:
         print(f'Moving files from {current_course}...')
-        debug()
+        proceed()
     execute('find . -maxdepth 1 -type f -exec git rm {} \\;')
     # TODO: remove subdirectories related to the other courses
     execute(f'git mv ./{current_course}/.gitignore .')
     execute(f'git mv ./{current_course}/* .')
     if verbose:
         print(f'Removing {current_course} emptied subdirectory...')
-        debug()
+        proceed()
     execute(f'rm -rf ./{current_course}')
 
 
@@ -55,7 +55,7 @@ def commit_changes(message=None, branch='questions'):
     assert_on_branch(branch)
     if verbose:
         print(f'Committing changes to {branch}...')
-        debug()
+        proceed()
     if message is None:
         message = f'Undisclosed updates'
     execute(f'git commit -m "{message}"')
@@ -73,7 +73,7 @@ def create_question(notebook):
 
     if verbose:
         print(f'Converting {notebook}...')
-        debug()
+        proceed()
 
     nb = nbformat.read(notebook, nbformat.NO_CONVERT)
 
@@ -158,15 +158,15 @@ def create_question(notebook):
                     solution = None
                 cells_to_keep.append(i)
         elif i['cell_type'] == 'markdown':
-            if '## @question\n' in source:
+            if '### @question\n' in source:
                 if solution is not None:
                     cells_to_keep.append(solution)
                 solution = None
-                qa = source.rsplit('## @answer\n')
-                question = qa[0].strip('## @question\n')
+                qa = source.rsplit('### @answer\n')
+                question = qa[0].strip('### @question\n')
                 if len(qa) > 1:
                     answer = qa[1]
-                    s = f"""<div class="alert alert-block alert-warning">\n{question}\n</div> <br>\n<button data-toggle="collapse"
+                    s = f"""<div class="alert alert-block alert-warning">\n<b>Question: </b><br>{question}\n</div> <br>\n<button data-toggle="collapse"
                     data-target="#question_{question_nr:04d}">Afficher la réponse</button>\n\n<div id="question_{question_nr:04d}"
                     class="collapse">{answer}\n</div>\n"""
                     sx = codecs.encode(codecs.encode(s, 'utf8'), 'hex')
@@ -176,16 +176,26 @@ def create_question(notebook):
                     i['outputs'] = [nbformat.notebooknode.NotebookNode({'name': 'stdout', 'output_type': 'stream',
                                                                         'text': '# @info: Exécutez-moi pour afficher la question interactive\n'})]
                 else:
-                    s = f"""<div class="alert alert-block alert-warning">\n{question}\n</div>"""
+                    s = f"""<div class="alert alert-block alert-warning">\n<b>Question: </b><br>{question}\n</div>"""
                     i['source'] = s
 
                 cells_to_keep.append(i)
                 question_nr += 1
-            elif '## @tip' in source:
-                tip = source.replace('# @tip', '').replace('\n', '<br>\n').lstrip()
-                while tip.startswith('<br>\n'):
-                    tip = tip[5:]
-                i['source'] = f'<div class="alert alert-block alert-info">\n<b>Tip:</b> {tip}\n</div>'
+            elif '### @info' in source:
+                info = source.replace('### @info', '').replace('\n', '<br>\n').lstrip()
+                while info.startswith('<br>\n'):
+                    info = info[5:]
+                i['source'] = f'<div class="alert alert-block alert-info">\n<b>Info:</b> {info}\n</div>'
+            elif '### @warning' in source:
+                warning = source.replace('### @warning', '').replace('\n', '<br>\n').lstrip()
+                while warning.startswith('<br>\n'):
+                    warning = warning[5:]
+                i['source'] = f'<div class="alert alert-block alert-warning">\n<b>Attention:</b><br> {warning}\n</div>'
+            elif '### @note' in source:
+                note = source.replace('### @note', '').replace('\n', '<br>\n').lstrip()
+                while note.startswith('<br>\n'):
+                    note = info[5:]
+                i['source'] = f'<b>Note:</b><br>{note}\n'
             elif "## @section" in source:
                 section += 1
                 if solution is not None:
@@ -196,7 +206,7 @@ def create_question(notebook):
                 i['source'] += f'## {section}. {title}'
                 cells_to_keep.append(i)
                 subsection = 0
-            elif "## @subsection" in source:
+            elif "### @subsection" in source:
                 subsection += 1
                 if solution is not None:
                     cells_to_keep.append(solution)
@@ -237,8 +247,8 @@ def create_question(notebook):
     return out_notebook
 
 
-def debug():
-    if mode == 'debug' and confirm('Proceed', 'Yes') != 'yes':
+def proceed(ask=False):
+    if (mode == 'debug' or ask) and confirm('Proceed', 'Yes') != 'yes':
         exit("Interrupted by user...")
 
 
@@ -263,7 +273,7 @@ def pull_repo(repo, branch='main'):
         branch = ''
     if verbose:
         print(f'Pulling from {repo} {branch}...')
-        debug()
+        proceed()
     cmd = 'git pull'
     if repo != '':
         cmd += f' {repo} {branch}'
@@ -277,7 +287,7 @@ def push_changes(repo='', branch='questions', remote_branch='main'):
             print(f'Pushing ...')
         else:
             print(f'Pushing to {repo} {branch}:{remote_branch}...')
-        debug()
+        proceed()
     cmd = 'git push'
     if repo != '':
         cmd += f' {repo} {branch}:{remote_branch}'
@@ -288,15 +298,15 @@ def push_repo_and_remove_branch(repo, branch='questions', remote_branch='main'):
     push_changes(repo, branch, remote_branch)
     if verbose:
         print(f'Stashing changes...')
-        debug()
+        proceed()
     execute('git stash')
     if verbose:
         print(f'Checking out back to master...')
-        debug()
+        proceed()
     execute('git checkout master')
     if verbose:
         print(f'Deleting {branch} branch...')
-        debug()
+        proceed()
     if branch in ['master', 'main']:
         reply = confirm(f'DO YOU REALLY WANT TO ERASE THE {branch.capitalize()} BRANCH', 'No')
         if reply != 'yes':
@@ -308,7 +318,7 @@ def remove_file(filename, branch='questions'):
     assert_on_branch(branch)
     if verbose:
         print(f'Removing file {filename} from branch {branch}...')
-        debug()
+        proceed()
     execute(f'git rm -f {filename}')
 
 
@@ -318,7 +328,7 @@ def remove_solutions(parent_dir='.', branch='questions'):
     assert_on_branch(branch)
     if verbose:
         print('Removing solution files...')
-        debug()
+        proceed()
     for f in to_remove:
         execute(f'git rm -f {f}')
 
@@ -342,7 +352,7 @@ def untrack_file(filename, branch='questions'):
     assert_on_branch(branch)
     if verbose:
         print(f'Untracking file {filename} on branch {branch}...')
-        debug()
+        proceed()
     execute(f'git rm --cached {filename}')
 
 
@@ -377,6 +387,9 @@ if __name__ == '__main__':
     # Prepares the question notebook creates a new branch synchronize with questions repo on github
     if course in course_list:
         question_filename = create_question(solution_filename)
+        msg=f'Check {question_filename}, run the manage solutions cell and save the notebook.'
+        print('\n' + '='*(4+len(msg)) + '\n= ' + msg + ' =\n' + '='*(4+len(msg)) + '\n')
+        proceed(ask=True)
         add_file_into_commit(question_filename, branch='master')
         add_file_into_commit(solution_filename, branch='master')
         commit_changes(message=f'Updates {question_filename}', branch='master')
