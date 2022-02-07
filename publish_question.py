@@ -1,4 +1,5 @@
 import glob
+import os
 import nbformat
 import codecs
 import sys
@@ -322,6 +323,21 @@ def remove_solutions(parent_dir='.', branch='questions'):
         execute(f'git rm -f {f}')
 
 
+def track_files(dirname='.'):
+    files_in_dir = glob.glob(os.path.join(dirname, '*'))
+    files_in_dir = [os.path.basename(i) for i in files_in_dir]
+    track_file = os.path.join(dirname, 'track.txt')
+    if os.path.exists(track_file):
+        with open(track_file, 'r') as file:
+            files_to_track = file.readlines()
+            files_to_track = [i.strip('\n') for i in files_to_track]
+    else:
+        files_to_track = []
+    for i in files_in_dir:
+        if i not in files_to_track:
+            untrack_file(i)
+
+
 def untrack_file(filename, branch='questions'):
     assert_on_branch(branch)
     if verbose:
@@ -369,6 +385,7 @@ if __name__ == '__main__':
         clean_path(course, branch='questions')
         solution_filename = f'./{section}/{topic}/{topic}_Solution.ipynb'
         untrack_file(solution_filename, 'questions')
+        track_files(dirname=f'./{section}/{topic}')
         commit_changes(f'Updates {question_filename} in {course}', branch='questions')
         pull_repo(questions_repo, branch='main')
         push_repo_and_remove_branch(course)
