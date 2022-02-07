@@ -402,12 +402,12 @@ if __name__ == '__main__':
             msg=f'Check {question_filename}, run the manage solutions cell and save the notebook.'
             print('\n' + '='*(4+len(msg)) + '\n= ' + msg + ' =\n' + '='*(4+len(msg)) + '\n')
             proceed(ask=True)
+            add_file_into_commit(question_filename, branch='master')
+            add_file_into_commit(solution_filename, branch='master')
+            commit_changes(message=f'Updates {question_filename}', branch='master')
+            push_changes(branch='master')
         else:
             question_filename = get_question_filename(solution_filename)
-        add_file_into_commit(question_filename, branch='master')
-        add_file_into_commit(solution_filename, branch='master')
-        commit_changes(message=f'Updates {question_filename}', branch='master')
-        push_changes(branch='master')
         checkout_to_branch('questions')
         clean_path(course, branch='questions')
         solution_filename = f'./{section}/{topic}/{topic}_Solution.ipynb'
