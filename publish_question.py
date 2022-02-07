@@ -411,7 +411,7 @@ if __name__ == '__main__':
         checkout_to_branch('questions')
         clean_path(course, branch='questions')
         solution_filename = f'./{section}/{topic}/{topic}_Solution.ipynb'
-        untrack_file(solution_filename, 'questions')
+        # untrack_file(solution_filename, 'questions')
         track_files(dirname=f'./{section}/{topic}')
         commit_changes(f'Updates {question_filename} in {course}', branch='questions')
         pull_repo(questions_repo, branch='main')
