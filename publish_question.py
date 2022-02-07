@@ -397,10 +397,13 @@ if __name__ == '__main__':
 
     # Prepares the question notebook creates a new branch synchronize with questions repo on github
     if course in course_list:
-        question_filename = create_question(solution_filename)
-        msg=f'Check {question_filename}, run the manage solutions cell and save the notebook.'
-        print('\n' + '='*(4+len(msg)) + '\n= ' + msg + ' =\n' + '='*(4+len(msg)) + '\n')
-        proceed(ask=True)
+        if confirm('Recreate the question notebook', 'No') == 'yes':
+            question_filename = create_question(solution_filename)
+            msg=f'Check {question_filename}, run the manage solutions cell and save the notebook.'
+            print('\n' + '='*(4+len(msg)) + '\n= ' + msg + ' =\n' + '='*(4+len(msg)) + '\n')
+            proceed(ask=True)
+        else:
+            question_filename = get_question_filename(solution_filename)
         add_file_into_commit(question_filename, branch='master')
         add_file_into_commit(solution_filename, branch='master')
         commit_changes(message=f'Updates {question_filename}', branch='master')
