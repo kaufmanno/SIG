@@ -340,7 +340,11 @@ def remove_solutions(parent_dir='.', branch='questions'):
         execute(f'git rm -f {f}')
 
 
-def track_files(dirname='.'):
+def track_files(dirname='.', branch='questions'):
+    assert_on_branch(branch)
+    if verbose:
+        print('Untracking files that are not in track.txt...')
+        proceed()
     files_in_dir = glob.glob(os.path.join(dirname, '*'))
     files_in_dir = [os.path.basename(i) for i in files_in_dir]
     track_file = os.path.join(dirname, 'track.txt')
