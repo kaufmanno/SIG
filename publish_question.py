@@ -346,7 +346,7 @@ def track_files(dirname='.', branch='questions'):
         print('Untracking files that are not in track.txt...')
         proceed()
     files_in_dir = glob.glob(os.path.join(dirname, '*'))
-    files_in_dir = [os.path.basename(i) for i in files_in_dir]
+    # files_in_dir = [os.path.basename(i) for i in files_in_dir]
     track_file = os.path.join(dirname, 'track.txt')
     if os.path.exists(track_file):
         with open(track_file, 'r') as file:
